@@ -1,0 +1,82 @@
+<?php
+
+/*
+ * By adding type hints and enabling strict type checking, code can become
+ * easier to read, self-documenting and reduce the number of potential bugs.
+ * By default, type declarations are non-strict, which means they will attempt
+ * to change the original type to match the type specified by the
+ * type-declaration.
+ *
+ * In other words, if you pass a string to a function requiring a float,
+ * it will attempt to convert the string value to a float.
+ *
+ * To enable strict mode, a single declare directive must be placed at the top
+ * of the file.
+ * This means that the strictness of typing is configured on a per-file basis.
+ * This directive not only affects the type declarations of parameters, but also
+ * a function's return type.
+ *
+ * For more info review the Concept on strict type checking in the PHP track
+ * <link>.
+ *
+ * To disable strict typing, comment out the directive below.
+ */
+
+declare(strict_types=1);
+
+class KillerSudokuHelper
+{
+    public function combinations(int $sum, int $size, array $exclude): array
+    {
+        $result = [];
+    
+        $this->backtrack($sum, $size, $exclude, [], 1, 0, $result);
+    
+        return $result;
+    }
+
+    private function backtrack(int $sum, int $size, array $exclude, $current, $start, $currentSum, &$result) 
+    {
+        // ✅ Caso válido
+        if ($currentSum === $sum && count($current) === $size) {
+            $result[] = $current;
+            return;
+        }
+    
+        // ✅ Corte básico
+        if ($currentSum > $sum || count($current) >= $size) {
+            return;
+        }
+    
+        for ($i = $start; $i <= $sum; $i++) {
+
+            if (in_array($i, $exclude)) {
+                continue;
+            }
+
+            // 🔥 PODA 1 (MUY IMPORTANTE)
+            if ($currentSum + $i > $sum) {
+                break;
+            }
+
+            // 🔥 PODA 2
+            if (count($current) + ($sum - $i + 1) < $size) {
+                break;
+            }
+    
+            $current[] = $i;
+
+            $this->backtrack(
+                $sum,
+                $size,
+                $exclude,
+                $current,
+                $i + 1,
+                $currentSum + $i,
+                $result
+            );
+
+            array_pop($current);
+        }
+    }
+}
