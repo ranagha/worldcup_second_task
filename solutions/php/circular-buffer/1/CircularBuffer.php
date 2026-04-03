@@ -1,0 +1,89 @@
+<?php
+
+/*
+ * By adding type hints and enabling strict type checking, code can become
+ * easier to read, self-documenting and reduce the number of potential bugs.
+ * By default, type declarations are non-strict, which means they will attempt
+ * to change the original type to match the type specified by the
+ * type-declaration.
+ *
+ * In other words, if you pass a string to a function requiring a float,
+ * it will attempt to convert the string value to a float.
+ *
+ * To enable strict mode, a single declare directive must be placed at the top
+ * of the file.
+ * This means that the strictness of typing is configured on a per-file basis.
+ * This directive not only affects the type declarations of parameters, but also
+ * a function's return type.
+ *
+ * For more info review the Concept on strict type checking in the PHP track
+ * <link>.
+ *
+ * To disable strict typing, comment out the directive below.
+ */
+
+declare(strict_types=1);
+
+class CircularBuffer
+{
+    private int $size;
+    private array $data;
+    private int $start;
+    private int $end;
+
+    public function __construct($size) {
+        $this->size = $size;
+        $this->start = 0;
+        $this->end = 0;
+        for($i= 0; $i < $this->size; $i++) {
+            $this->data[$i] = '';
+        }
+    }
+
+    public function read()
+    {
+        if($this->start === $this->end && $this->data[$this->start] === '') {
+            throw new BufferEmptyError('Buffer empty');
+        }
+        $prestart = $this->start;
+        $this->start = ($this->start+1)%$this->size;
+        $exit = $this->data[$prestart];
+        $this->data[$prestart] = '';
+        return $exit;
+    }
+
+    public function write($item): void
+    {
+        if($this->data[$this->end] !== '') {
+            throw new BufferFullError('Buffer full');
+        }
+        $this->data[$this->end] = $item;
+        $this->end = ($this->end+1)%$this->size;
+    }
+
+    public function clear(): void
+    {
+        $this->start = 0;
+        $this->end = 0;
+        for($i= 0; $i < $this->size; $i++) {
+            $this->data[$i] = '';
+        }
+    }
+
+    public function forceWrite($item): void
+    {
+        if($this->data[$this->end] !== '') {
+             $this->start = ($this->start+1)%$this->size;
+        }
+        $this->data[$this->end] = $item;
+        $this->end = ($this->end+1)%$this->size;
+    }
+}
+
+class BufferFullError extends Exception
+{
+}
+
+class BufferEmptyError extends Exception
+{
+}
